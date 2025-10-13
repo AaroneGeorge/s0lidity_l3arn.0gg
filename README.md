@@ -415,6 +415,181 @@ Same as Type 0, **plus**:
 
 ---
 
-## 3.
+## 3. The `vm` functions or cheatcodes in foundry
+
+### 🧠 What they are
+
+In Foundry, `vm` functions are called ***cheatcodes***.
+
+They are **special helper functions** provided by the Forge testing environment (not part of Solidity itself) that allow you to:
+
+* Manipulate blockchain state
+* Mock behavior
+* Simulate different conditions
+* Control execution during testing
+
+---
+
+### ⚙️ Major Categories of Cheatcodes (`vm` functions)
+
+### 🕒 1. **Time & Block Manipulation**
+
+| Cheatcode                | Description                                             |
+| ------------------------ | ------------------------------------------------------- |
+| `vm.warp(uint256)`       | Sets `block.timestamp`                                  |
+| `vm.roll(uint256)`       | Sets `block.number`                                     |
+| `vm.fee(uint256)`        | Sets `block.basefee`                                    |
+| `vm.chainId(uint256)`    | Sets `block.chainid`                                    |
+| `vm.prevrandao(uint256)` | Sets `block.prevrandao` (previously `block.difficulty`) |
+
+---
+
+### 💰 2. **Account & Balance Control**
+
+| Cheatcode                   | Description                                    |
+| --------------------------- | ---------------------------------------------- |
+| `vm.deal(address, uint256)` | Sets ETH balance for an address                |
+| `vm.prank(address)`         | Makes the next call come **from** that address |
+| `vm.startPrank(address)`    | Starts persistent impersonation of an address  |
+| `vm.stopPrank()`            | Stops impersonation                            |
+| `vm.addr(uint256)`          | Derives an address from a private key          |
+| `vm.sign(uint256, bytes32)` | Signs a message hash with a given private key  |
+
+---
+
+### 📄 3. **Storage & State**
+
+| Cheatcode                                       | Description                         |
+| ----------------------------------------------- | ----------------------------------- |
+| `vm.store(address, bytes32 key, bytes32 value)` | Writes directly to contract storage |
+| `vm.load(address, bytes32 key)`                 | Reads raw storage at a given slot   |
+| `vm.snapshot()`                                 | Takes a snapshot of the EVM state   |
+| `vm.revertTo(uint256 snapshotId)`               | Reverts to a previous snapshot      |
+
+---
+
+### ⚡ 4. **Error & Revert Testing**
+
+| Cheatcode                       | Description                                    |
+| ------------------------------- | ---------------------------------------------- |
+| `vm.expectRevert()`             | Expects a revert in the next call              |
+| `vm.expectRevert(bytes)`        | Expects a revert with specific error data      |
+| `vm.expectEmit()`               | Expects an event to be emitted                 |
+| `vm.expectCall(address, bytes)` | Expects a call to a specific contract/function |
+
+---
+
+### 🔐 5. **Environment & Configuration**
+
+| Cheatcode               | Description                             |
+| ----------------------- | --------------------------------------- |
+| `vm.envString(string)`  | Reads an environment variable (string)  |
+| `vm.envUint(string)`    | Reads an environment variable (uint)    |
+| `vm.envAddress(string)` | Reads an environment variable (address) |
+| `vm.envBool(string)`    | Reads an environment variable (bool)    |
+
+---
+
+### 🧪 6. **Mocking & Fuzzing Helpers**
+
+| Cheatcode                              | Description                                    |
+| -------------------------------------- | ---------------------------------------------- |
+| `vm.assume(bool condition)`            | Sets a constraint for fuzzing tests            |
+| `vm.bound(uint256, uint256, uint256)`  | Bounds a fuzzed value to a specific range      |
+| `vm.label(address, string)`            | Labels an address for better stack traces      |
+| `vm.record()` / `vm.accesses(address)` | Records all storage reads/writes for debugging |
+
+---
+
+### 🪄 7. **Miscellaneous / Advanced**
+
+| Cheatcode                      | Description                                                                |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| `vm.ffi(string[])`             | Runs a shell command and returns stdout (⚠️ powerful, disabled by default) |
+| `vm.broadcast()`               | Used in scripts for broadcasting transactions                              |
+| `vm.serialize*()`              | Used to build structured JSON data for debugging/reporting                 |
+| `vm.getCode(string)`           | Loads bytecode from a file                                                 |
+| `vm.setNonce(address, uint64)` | Sets the transaction nonce of an account                                   |
+
+---
+## 4. AAA testing framework
+
+It stands for:
+
+> **Arrange → Act → Assert**
+
+Each test follows this structure:
+
+1. **Arrange** → Set up your environment and inputs
+2. **Act** → Execute the function or transaction being tested
+3. **Assert** → Verify that the result is what you expect
+
+---
+
+### 🧩 Example (Solidity + Foundry)
+
+Let’s say you’re testing a simple ERC20 transfer.
+
+```solidity
+import "forge-std/Test.sol";
+import "../src/MyToken.sol";
+
+contract MyTokenTest is Test {
+    MyToken token;
+    address alice = address(1);
+    address bob = address(2);
+
+    function setUp() public {
+        token = new MyToken("TestToken", "TT", 18);
+        token.mint(alice, 100 ether);
+    }
+
+    function testTransfer() public {
+        /*** ARRANGE ***/
+        vm.startPrank(alice);
+        uint256 initialBalance = token.balanceOf(bob);
+
+        /*** ACT ***/
+        token.transfer(bob, 50 ether);
+
+        /*** ASSERT ***/
+        uint256 finalBalance = token.balanceOf(bob);
+        assertEq(finalBalance, initialBalance + 50 ether, "Bob should receive 50 tokens");
+
+        vm.stopPrank();
+    }
+}
+```
+
+---
+
+### 🧪 How it maps in Solidity testing
+
+| Phase       | Example operations                                                                   |
+| ----------- | ------------------------------------------------------------------------------------ |
+| **Arrange** | Deploy contracts, set balances, assign roles, mock data, warp time, etc.             |
+| **Act**     | Call the function or emit transaction you’re testing                                 |
+| **Assert**  | Use `assertEq`, `assertTrue`, `expectRevert`, `expectEmit`, etc., to verify outcomes |
+
+---
+
+### 🧱 Example: Testing a revert condition
+
+```solidity
+function testCannotTransferMoreThanBalance() public {
+    /*** ARRANGE ***/
+    vm.startPrank(alice);
+    uint256 aliceBalance = token.balanceOf(alice);
+
+    /*** ACT ***/
+    vm.expectRevert("ERC20: transfer amount exceeds balance");
+    token.transfer(bob, aliceBalance + 1);
+
+    /*** ASSERT ***/
+    // No balance change should occur
+    assertEq(token.balanceOf(alice), aliceBalance);
+    vm.stopPrank();
+}
+```
 
 
