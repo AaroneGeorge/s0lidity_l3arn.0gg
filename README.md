@@ -592,4 +592,96 @@ function testCannotTransferMoreThanBalance() public {
 }
 ```
 
+## 5. Types of tests
 
+### 🧱 Folder Structure Overview
+
+```
+test/
+├── unit/          # Isolated tests for single contracts or functions
+├── integration/   # Tests interactions between multiple contracts
+├── fuzz/          # Randomized property-based tests
+├── invariant/     # Long-running tests ensuring system-level properties always hold
+├── fork/          # Tests using real mainnet/testnet state (via fork)
+└── mocks/         # Mock contracts for simulation or dependency isolation
+```
+
+---
+
+### 🧪 1. **Unit Testing**
+
+**Goal:**
+Test individual **functions or contracts** in isolation — no external dependency.
+Used to verify *smallest logical units* of code.
+
+**Example:**
+
+* Test that `deposit()` updates balances correctly.
+* Check that `transfer()` emits the right event.
+
+---
+
+### 🔗 2. **Integration Testing**
+
+**Goal:**
+Test **interactions** between multiple contracts or modules together.
+Ensures they work properly as a system.
+
+**Example:**
+
+* Token + Vault integration (depositing ERC20 tokens).
+* LendingPool interacting with PriceOracle.
+
+---
+
+### 🎲 3. **Fuzz Testing**
+
+**Goal:**
+Automatically test your functions with **randomized input values**.
+Foundry generates many inputs to find edge cases or unexpected behaviors.
+
+**Example:**
+
+* Check `transfer()` never reverts for any valid address and amount.
+* Bound inputs within certain ranges using `bound()` helper.
+
+---
+
+### ♾️ 4. **Invariant Testing**
+
+**Goal:**
+Continuously test that **certain properties are always true**, no matter how many random actions occur.
+Used for **system integrity** and **security verification**.
+
+**Example:**
+
+* `totalSupply == sum(userBalances)` must always hold.
+* No one should withdraw more than deposited.
+
+
+---
+
+### 🌍 5. **Fork Testing**
+
+**Goal:**
+Run tests against **live blockchain state** (mainnet or testnet) by forking it.
+Verifies compatibility with deployed contracts and real data.
+
+**Example:**
+
+* Test your DeFi strategy using real Uniswap pools.
+* Simulate interactions with live Chainlink feeds.
+
+
+---
+
+### 🧰 6. **Mocks**
+
+**Goal:**
+Simulate or replace real external contracts (like oracles or tokens) to isolate test logic.
+Mocks are not tests themselves, but support other test types.
+
+**Example:**
+
+* `MockERC20.sol`
+* `MockOracle.sol`
