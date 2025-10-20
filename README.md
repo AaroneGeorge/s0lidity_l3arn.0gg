@@ -12,6 +12,17 @@ anvil
 
 ## 🔹 Forge
 
+### Test using Forge
+```bash
+forge test
+```
+- Tests all files in test folder and all the functions
+
+```bash
+forge test --mt <Function Name>
+```
+- Tests only the function
+
 ### Deploy a Contract
 
 ```bash
@@ -685,3 +696,118 @@ Mocks are not tests themselves, but support other test types.
 
 * `MockERC20.sol`
 * `MockOracle.sol`
+
+## 6. Layout of a contract
+```
+Layout of Contract:
+    version
+    imports
+    errors
+    interfaces, libraries, contracts
+    Type declarations
+    State variables
+    Events
+    Modifiers
+    Functions
+
+Layout of Functions:
+    constructor
+    receive function (if exists)
+    fallback function (if exists)
+    external
+    public
+    internal
+    private
+    view & pure functions
+```
+## 7. Better error handling - gas efficient require terms
+solidity version 0.8.26 (below statement only works for this version & above only)
+```
+error SendMoreToEnterRaffle();
+require(msg.value >= i_entranceFee, SendMoreToEnterRaffle());
+```
+more gas efficient term would be;
+```
+if (msg.value < i_entranceFee) {
+    revert SendMoreToEnterRaffle()
+}
+```
+this below line, uses so much gas to store the string.
+```
+require(msg.value >= i_entranceFee, "Please Send More To Enter Raffle");
+```
+## 8. CEI pattern
+
+> ⚖️ **Checks → Effects → Interactions**
+
+
+#### 1. **Checks**
+
+Perform **all validations first** — verify that inputs and state conditions are correct before making any state changes or external calls.
+
+✅ Example:
+
+```solidity
+require(balance[msg.sender] >= amount, "Not enough balance");
+```
+
+---
+
+#### 2. **Effects**
+
+Once all checks pass, make your **state changes** — update mappings, counters, flags, etc.
+This ensures the contract’s internal state is consistent **before** any external calls occur.
+
+✅ Example:
+
+```solidity
+balance[msg.sender] -= amount;
+```
+
+---
+
+#### 3. **Interactions**
+
+Finally, perform **external calls** — e.g. sending Ether or calling another contract.
+Doing this last prevents attackers from reentering your contract in a vulnerable state.
+
+✅ Example:
+
+```solidity
+(bool success, ) = msg.sender.call{value: amount}("");
+require(success, "Transfer failed");
+```
+
+---
+
+### 🛡️ Example: With and Without CEI
+
+#### ❌ Without CEI (vulnerable to reentrancy)
+
+```solidity
+function withdraw(uint256 amount) public {
+    // ⚠️ Interaction happens before effect
+    (bool success, ) = msg.sender.call{value: amount}("");
+    require(success, "Transfer failed");
+
+    balance[msg.sender] -= amount; // <-- too late
+}
+```
+
+#### ✅ With CEI (safe)
+
+```solidity
+function withdraw(uint256 amount) public {
+    // ✅ Checks
+    require(balance[msg.sender] >= amount, "Insufficient balance");
+
+    // ✅ Effects
+    balance[msg.sender] -= amount;
+
+    // ✅ Interactions
+    (bool success, ) = msg.sender.call{value: amount}("");
+    require(success, "Transfer failed");
+}
+```
+
+## 9.
