@@ -74,7 +74,40 @@ forge fmt
 
 > Formats the codebase uniformly.
 
----
+### Code Coverage
+
+```bash
+forge coverage
+```
+> This command measures how much of your Solidity code is actually executed (covered) when you run your test suite.
+
+The purpose of forge coverage is to help you:
+
+- Find untested code paths — logic that is never executed in tests.
+
+- Increase test completeness — ensure that all important logic is verified by at least one test.
+
+- Improve confidence — the higher your coverage, the less likely you have undiscovered bugs in unused paths.
+
+```bash
+forge coverage --report debug
+```
+Detailed per-file breakdown of coverage data.
+
+Lines or functions that weren’t executed.
+
+Coverage instrumentation logs (helpful if something looks off).
+
+Errors that occur during instrumentation or testing
+
+| Flag               | Purpose                                                                  |
+| ------------------ | ------------------------------------------------------------------------ |
+| `--report lcov`    | Exports an `.lcov` file (compatible with tools like Codecov or genhtml). |
+| `--report summary` | Shows only summarized results (no debug info).                           |
+| `--report text`    | Default human-readable terminal output.                                  |
+| `--report json`    | Outputs coverage data as JSON (useful for automation).                   |
+
+
 
 ## 🔹 Cast
 
