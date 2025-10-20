@@ -52,4 +52,3 @@ fundSubscription:
 	@forge script script/Interactions.s.sol:FundSubscription $(NETWORK_ARGS)
 
 
-thankyou:; echo "Thank you for using a makefile!"
