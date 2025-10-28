@@ -13,14 +13,17 @@ anvil
 ## 🔹 Forge
 
 ### Test using Forge
+
 ```bash
 forge test
 ```
+
 - Tests all files in test folder and all the functions
 
 ```bash
 forge test --mt <Function Name>
 ```
+
 - Tests only the function
 
 ### Deploy a Contract
@@ -29,9 +32,9 @@ forge test --mt <Function Name>
 forge create SimpleStorage --rpc-url http://127.0.0.1:8545 --interactive --broadcast
 ```
 
-* **[http://127.0.0.1:8545](http://127.0.0.1:8545)** → Anvil local chain URL
-* **--interactive** → Prompts for your private key
-* **--broadcast** → Required for deployment and on-chain transactions
+- **[http://127.0.0.1:8545](http://127.0.0.1:8545)** → Anvil local chain URL
+- **--interactive** → Prompts for your private key
+- **--broadcast** → Required for deployment and on-chain transactions
 
 ---
 
@@ -52,20 +55,27 @@ forge script script/DeploySimpleStorage.s.sol --rpc-url <RPC_URL> --private-key 
 > Proper command for deployment using a specified RPC and private key.
 
 ---
+
 ### Verify Contract using etherscan api
+
 ```bash
 forge verify-contract <DEPLOYED_CONTRACT_ADDRESS> <CONTRACT_PATH>:<CONTRACT_NAME> --chain-id <CHAIN_ID> --etherscan-api-key $ETHERSCAN_API_KEY
 ```
->If your contract has constructor parameters, you must include them encoded:
+
+> If your contract has constructor parameters, you must include them encoded:
+
 ```bash
 forge verify-contract 0x1234abcd... src/MyToken.sol:MyToken --constructor-args $(cast abi-encode "constructor(address,uint256)" 0xabc123... 1000) --chain-id 11155111 --etherscan-api-key $ETHERSCAN_API_KEY
 ```
->If you deployed via a forge script, Foundry will automatically cache your constructor args, so you can use the shorthand:
+
+> If you deployed via a forge script, Foundry will automatically cache your constructor args, so you can use the shorthand:
+
 ```bash
 forge verify-contract --compiler-version v0.8.24+commit.e0e8fxx --num-of-optimizations 200 <DEPLOYED CA> src/MyToken.sol:MyToken
 ```
 
 ---
+
 ### Format Codebase
 
 ```bash
@@ -79,6 +89,7 @@ forge fmt
 ```bash
 forge coverage
 ```
+
 > This command measures how much of your Solidity code is actually executed (covered) when you run your test suite.
 
 The purpose of forge coverage is to help you:
@@ -92,6 +103,7 @@ The purpose of forge coverage is to help you:
 ```bash
 forge coverage --report debug
 ```
+
 Detailed per-file breakdown of coverage data.
 
 Lines or functions that weren’t executed.
@@ -106,8 +118,6 @@ Errors that occur during instrumentation or testing
 | `--report summary` | Shows only summarized results (no debug info).                           |
 | `--report text`    | Default human-readable terminal output.                                  |
 | `--report json`    | Outputs coverage data as JSON (useful for automation).                   |
-
-
 
 ## 🔹 Cast
 
@@ -161,12 +171,12 @@ cast send <CONTRACT_ADDRESS> "store(uint256)" 123 \
 ```
 
 > Another way to send tx with already existing cast wallet:
+
 ```bash
 cast send <CONTRACT_ADDRESS> "store(uint256)" 123 \
   --rpc-url http://127.0.0.1:8545 \
   --keystore ~/.foundry/keystores/<WALLET_NAME>
 ```
-
 
 #### Example Output:
 
@@ -206,7 +216,6 @@ cast --to-base 0x000000000000000000000000000000000000000000000000000000000000007
 ```
 123
 ```
-
 
 ## ⚡ Foundry zkSync
 
@@ -278,6 +287,7 @@ forge create src/SimpleStorage.sol:SimpleStorage \
 ---
 
 # Other important infos while dev-maxxing
+
 ## 1. --legacy flag
 
 ### 🧠 Background:
@@ -285,8 +295,8 @@ forge create src/SimpleStorage.sol:SimpleStorage \
 Ethereum introduced **EIP-1559** to improve gas estimation and fee burning.
 With it, transactions now have two new fields:
 
-* `maxFeePerGas`
-* `maxPriorityFeePerGas`
+- `maxFeePerGas`
+- `maxPriorityFeePerGas`
 
 However, some networks or RPCs (like older testnets, private dev chains, or L2s that haven’t fully adopted EIP-1559) may **not support these new fields**.
 
@@ -302,8 +312,8 @@ forge script script/Deploy.s.sol --rpc-url $RPC_URL --broadcast --legacy
 
 It tells Foundry to:
 
-* Use **`gasPrice`** instead of `maxFeePerGas` and `maxPriorityFeePerGas`.
-* Send **legacy-style transactions**, compatible with older networks or clients.
+- Use **`gasPrice`** instead of `maxFeePerGas` and `maxPriorityFeePerGas`.
+- Send **legacy-style transactions**, compatible with older networks or clients.
 
 ---
 
@@ -311,15 +321,16 @@ It tells Foundry to:
 
 Use it if:
 
-* You get an error like:
+- You get an error like:
 
   ```
   unsupported transaction type: 2
   ```
 
   (Type 2 is EIP-1559 transactions.)
-* You’re deploying to an older chain, local anvil node, or custom EVM that only supports **legacy (type 0)** transactions.
-* Your RPC provider doesn’t recognize `maxFeePerGas`.
+
+- You’re deploying to an older chain, local anvil node, or custom EVM that only supports **legacy (type 0)** transactions.
+- Your RPC provider doesn’t recognize `maxFeePerGas`.
 
 ---
 
@@ -334,34 +345,33 @@ This sends a **type 0 transaction** (legacy gas model).
 
 `--slow` flag is used to send and confirm each transaction one at a time, waiting for each to be mined before sending the next.
 
-
 ## 2. The Tx types
 
 ### 🧱 1. **Type 0 – Legacy Transactions**
 
 **Introduced:** Pre-EIP-1559 (the original Ethereum transaction format).
-**Transaction type byte:** *not explicitly included* (i.e., old default).
+**Transaction type byte:** _not explicitly included_ (i.e., old default).
 
 ### 🔹 Structure:
 
-* `nonce`
-* `gasPrice`
-* `gasLimit`
-* `to`
-* `value`
-* `data`
-* `v, r, s` (signature)
+- `nonce`
+- `gasPrice`
+- `gasLimit`
+- `to`
+- `value`
+- `data`
+- `v, r, s` (signature)
 
 ### 🔹 Characteristics:
 
-* Uses a **single gasPrice** field.
-* User bids a total gas price; miners prioritize higher bids.
-* **No fee burn**, all gas fee goes to the miner.
+- Uses a **single gasPrice** field.
+- User bids a total gas price; miners prioritize higher bids.
+- **No fee burn**, all gas fee goes to the miner.
 
 ### 🔹 When you see this:
 
-* When using `--legacy` in Foundry.
-* On older chains (like early Ethereum or some EVM forks).
+- When using `--legacy` in Foundry.
+- On older chains (like early Ethereum or some EVM forks).
 
 ### 🔹 Example:
 
@@ -385,17 +395,17 @@ This sends a **type 0 transaction** (legacy gas model).
 
 Same as Type 0, **plus**:
 
-* `accessList`: a list of addresses and storage keys the transaction will touch.
+- `accessList`: a list of addresses and storage keys the transaction will touch.
 
 ### 🔹 Why:
 
-* Helps clients prefetch state, reducing gas cost for certain use cases.
-* Useful for contracts with predictable storage access patterns.
+- Helps clients prefetch state, reducing gas cost for certain use cases.
+- Useful for contracts with predictable storage access patterns.
 
 ### 🔹 Characteristics:
 
-* Still uses **`gasPrice`** (no EIP-1559 fields yet).
-* Mostly used on L2s or for optimization.
+- Still uses **`gasPrice`** (no EIP-1559 fields yet).
+- Mostly used on L2s or for optimization.
 
 ### 🔹 Example:
 
@@ -421,17 +431,17 @@ Same as Type 0, **plus**:
 
 ### 🔹 Structure:
 
-* `maxFeePerGas`
-* `maxPriorityFeePerGas`
-* `accessList`
-* and the usual fields (nonce, to, data, etc.)
+- `maxFeePerGas`
+- `maxPriorityFeePerGas`
+- `accessList`
+- and the usual fields (nonce, to, data, etc.)
 
 ### 🔹 Characteristics:
 
-* Introduces **base fee** (burned per block).
-* **maxFeePerGas** = total cap willing to pay.
-* **maxPriorityFeePerGas** = tip to the miner.
-* Makes gas estimation more stable and predictable.
+- Introduces **base fee** (burned per block).
+- **maxFeePerGas** = total cap willing to pay.
+- **maxPriorityFeePerGas** = tip to the miner.
+- Makes gas estimation more stable and predictable.
 
 ### 🔹 Example:
 
@@ -453,9 +463,9 @@ Same as Type 0, **plus**:
 
 | Type | EIP  | Name        | Fee Model                              | Access List | Common Fields             | Typical Use            |
 | ---- | ---- | ----------- | -------------------------------------- | ----------- | ------------------------- | ---------------------- |
-| 0    | –    | Legacy      | `gasPrice`                             | ❌           | nonce, gasPrice, gasLimit | Pre-EIP-1559, old RPCs |
-| 1    | 2930 | Access List | `gasPrice`                             | ✅           | + accessList              | Optimization use cases |
-| 2    | 1559 | Dynamic Fee | `maxFeePerGas`, `maxPriorityFeePerGas` | ✅           | + accessList              | Default since 2021     |
+| 0    | –    | Legacy      | `gasPrice`                             | ❌          | nonce, gasPrice, gasLimit | Pre-EIP-1559, old RPCs |
+| 1    | 2930 | Access List | `gasPrice`                             | ✅          | + accessList              | Optimization use cases |
+| 2    | 1559 | Dynamic Fee | `maxFeePerGas`, `maxPriorityFeePerGas` | ✅          | + accessList              | Default since 2021     |
 
 ---
 
@@ -463,14 +473,14 @@ Same as Type 0, **plus**:
 
 ### 🧠 What they are
 
-In Foundry, `vm` functions are called ***cheatcodes***.
+In Foundry, `vm` functions are called **_cheatcodes_**.
 
 They are **special helper functions** provided by the Forge testing environment (not part of Solidity itself) that allow you to:
 
-* Manipulate blockchain state
-* Mock behavior
-* Simulate different conditions
-* Control execution during testing
+- Manipulate blockchain state
+- Mock behavior
+- Simulate different conditions
+- Control execution during testing
 
 ---
 
@@ -556,6 +566,7 @@ They are **special helper functions** provided by the Forge testing environment 
 | `vm.setNonce(address, uint64)` | Sets the transaction nonce of an account                                   |
 
 ---
+
 ## 4. AAA testing framework
 
 It stands for:
@@ -656,12 +667,12 @@ test/
 
 **Goal:**
 Test individual **functions or contracts** in isolation — no external dependency.
-Used to verify *smallest logical units* of code.
+Used to verify _smallest logical units_ of code.
 
 **Example:**
 
-* Test that `deposit()` updates balances correctly.
-* Check that `transfer()` emits the right event.
+- Test that `deposit()` updates balances correctly.
+- Check that `transfer()` emits the right event.
 
 ---
 
@@ -673,8 +684,8 @@ Ensures they work properly as a system.
 
 **Example:**
 
-* Token + Vault integration (depositing ERC20 tokens).
-* LendingPool interacting with PriceOracle.
+- Token + Vault integration (depositing ERC20 tokens).
+- LendingPool interacting with PriceOracle.
 
 ---
 
@@ -686,8 +697,8 @@ Foundry generates many inputs to find edge cases or unexpected behaviors.
 
 **Example:**
 
-* Check `transfer()` never reverts for any valid address and amount.
-* Bound inputs within certain ranges using `bound()` helper.
+- Check `transfer()` never reverts for any valid address and amount.
+- Bound inputs within certain ranges using `bound()` helper.
 
 ---
 
@@ -699,9 +710,8 @@ Used for **system integrity** and **security verification**.
 
 **Example:**
 
-* `totalSupply == sum(userBalances)` must always hold.
-* No one should withdraw more than deposited.
-
+- `totalSupply == sum(userBalances)` must always hold.
+- No one should withdraw more than deposited.
 
 ---
 
@@ -713,9 +723,8 @@ Verifies compatibility with deployed contracts and real data.
 
 **Example:**
 
-* Test your DeFi strategy using real Uniswap pools.
-* Simulate interactions with live Chainlink feeds.
-
+- Test your DeFi strategy using real Uniswap pools.
+- Simulate interactions with live Chainlink feeds.
 
 ---
 
@@ -727,10 +736,11 @@ Mocks are not tests themselves, but support other test types.
 
 **Example:**
 
-* `MockERC20.sol`
-* `MockOracle.sol`
+- `MockERC20.sol`
+- `MockOracle.sol`
 
 ## 6. Layout of a contract
+
 ```
 Layout of Contract:
     version
@@ -753,26 +763,33 @@ Layout of Functions:
     private
     view & pure functions
 ```
+
 ## 7. Better error handling - gas efficient require terms
+
 solidity version 0.8.26 (below statement only works for this version & above only)
+
 ```
 error SendMoreToEnterRaffle();
 require(msg.value >= i_entranceFee, SendMoreToEnterRaffle());
 ```
+
 more gas efficient term would be;
+
 ```
 if (msg.value < i_entranceFee) {
     revert SendMoreToEnterRaffle()
 }
 ```
+
 this below line, uses so much gas to store the string.
+
 ```
 require(msg.value >= i_entranceFee, "Please Send More To Enter Raffle");
 ```
+
 ## 8. CEI pattern
 
 > ⚖️ **Checks → Effects → Interactions**
-
 
 #### 1. **Checks**
 
@@ -843,4 +860,84 @@ function withdraw(uint256 amount) public {
 }
 ```
 
-## 9.
+## 9. Types of Variables cheat sheet
+
+### 🧩 1. **State vs Local vs Global Variables**
+
+| Type                 | Description                                        | Example                                          |
+| -------------------- | -------------------------------------------------- | ------------------------------------------------ |
+| **State**            | Stored permanently on the blockchain               | `uint256 public balance;`                        |
+| **Local**            | Exists only inside a function, not stored on-chain | `uint256 temp = 5;`                              |
+| **Global (special)** | Provided by Solidity — gives blockchain info       | `block.timestamp`, `msg.sender`, `address(this)` |
+
+### 🛡️ 2. **Visibility Specifiers**
+
+These define **where** the variable or function can be accessed from.
+
+| Keyword    | Accessible from this contract? | Derived contracts? | Outside contracts? | Notes                                         |
+| ---------- | ------------------------------ | ------------------ | ------------------ | --------------------------------------------- |
+| `public`   | ✅                             | ✅                 | ✅                 | Automatically creates a getter for state vars |
+| `external` | ❌                             | ✅                 | ✅                 | Used only for functions, not variables        |
+| `internal` | ✅                             | ✅                 | ❌                 | Visible only to this and derived contracts    |
+| `private`  | ✅                             | ❌                 | ❌                 | Only this contract, not even derived ones     |
+
+### 🧱 3. **Mutability & Value Type Keywords**
+
+These define whether a variable’s value can change or not.
+
+| Keyword               | Meaning                                           | When to Use                                  |
+| --------------------- | ------------------------------------------------- | -------------------------------------------- |
+| **mutable (default)** | Value can change anytime                          | Regular variables                            |
+| **constant**          | Value fixed at compile time                       | Fixed values (like π or token symbol)        |
+| **immutable**         | Value set once during deployment (in constructor) | Deployment-time config like owner or address |
+
+🧠 _Example:_
+
+```solidity
+uint256 public constant ENTRY_FEE = 0.01 ether;
+address public immutable i_owner;
+
+constructor() {
+    i_owner = msg.sender; // can only be set here once
+}
+```
+
+### 💾 4. **Data Location Keywords**
+
+Used for reference types (like arrays, structs, strings, mappings) — they tell Solidity **where** data is stored.
+
+| Keyword    | Description                            | Typical Use                                        |
+| ---------- | -------------------------------------- | -------------------------------------------------- |
+| `storage`  | Permanent data on blockchain           | State vars or long-term structs                    |
+| `memory`   | Temporary, deleted after function call | Function parameters & local copies                 |
+| `calldata` | Non-modifiable, temporary input data   | External function parameters (cheaper than memory) |
+
+🧠 _Example:_
+
+```solidity
+function setName(string calldata _name) external {
+    string memory tempName = _name; // temporary copy
+}
+```
+
+### ⚙️ 5. **Other Special Keywords**
+
+| Keyword   | Description                                  | Example                                                  |
+| --------- | -------------------------------------------- | -------------------------------------------------------- |
+| `view`    | Function that reads but doesn’t modify state | `function getBalance() public view returns(uint)`        |
+| `pure`    | Function that doesn’t even read state        | `function add(uint a, uint b) public pure returns(uint)` |
+| `payable` | Function that can receive ETH                | `function deposit() external payable`                    |
+
+---
+
+### Cheat Sheet
+
+| Category           | Keyword                         | Meaning                         |
+| ------------------ | ------------------------------- | ------------------------------- |
+| Visibility         | `public`, `private`, `internal` | Controls access                 |
+| Mutability         | `constant`, `immutable`         | Controls value change           |
+| Data location      | `storage`, `memory`, `calldata` | Controls where data is stored   |
+| Function modifiers | `view`, `pure`, `payable`       | Controls blockchain interaction |
+| Variable scope     | `state`, `local`, `global`      | Controls lifetime               |
+
+## 10.
